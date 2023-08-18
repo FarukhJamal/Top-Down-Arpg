@@ -1,30 +1,62 @@
+using System.Collections.Generic;
+using System.Linq;
 using Helpers;
 using UnityEngine;
+using UnityEngine.InputSystem;
+
 
 namespace Managers
 {
   public class InputManager 
   {
     #region Variables
-    private Vector3 _input;
-    public Vector3 CurrentInput => _input;
+    private Vector2 _freeMoveVector;
+    private Vector3 _mouseClickVector;
+    private IEnumerable<PlayerInput.ActionEvent> _playerMoveInputActions;
     #endregion
-  
-    public void GetInput()
+    public delegate void OnMouseClick(Vector3 input);
+    public static OnMouseClick OnMouseClicked;
+    public Vector3 GetInput()
     {
-      _input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+      return new Vector3(_freeMoveVector.x, 0, _freeMoveVector.y);
     }
 
-    public void Look(Transform playerTransform,float turnSpeed)
+    public void InitializeMoveInputActions(PlayerInput playerInputs)
     {
-      if (_input != Vector3.zero)
+      _playerMoveInputActions = playerInputs.actionEvents.Where(u =>
+            u.actionName.Contains(Constants.PlayerMoveAction) ||
+            u.actionName.Contains(Constants.PlayerClickMoveAction));
+      
+      var playerMoveInputActions = _playerMoveInputActions.ToList();
+      for (int i = 0; i < playerMoveInputActions.Count; i++)
       {
-        var relative = (playerTransform.position + _input.ToIso()) - playerTransform.position;
-        var rotation = Quaternion.LookRotation(relative, Vector3.up);
-
-        playerTransform.rotation =
-          Quaternion.RotateTowards(playerTransform.rotation, rotation, turnSpeed * Time.deltaTime);
+        BindMoveInputCallbacks(playerMoveInputActions[i],i);
       }
     }
+    private void BindMoveInputCallbacks(PlayerInput.ActionEvent actionEvent,int index)
+    {
+      switch (index)
+      {
+        case 0:
+          actionEvent.AddListener(MoveInput);
+          break;
+        case 1:
+          actionEvent.AddListener(MouseClickInput);
+          break;
+      }
+    }
+
+    #region Input-Actions-Callback
+    public void MoveInput(InputAction.CallbackContext input)
+    {
+      _freeMoveVector= input.ReadValue<Vector2>();
+    }
+
+    public void MouseClickInput(InputAction.CallbackContext mouseInput)
+    {
+      _mouseClickVector = Mouse.current.position.ReadValue();
+      OnMouseClicked?.Invoke(_mouseClickVector);
+    }
+    #endregion
   }
 }

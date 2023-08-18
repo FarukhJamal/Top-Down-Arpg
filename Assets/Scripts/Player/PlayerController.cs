@@ -1,36 +1,121 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Helpers;
 using Managers;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace Player
 {
     public class PlayerController : MonoBehaviour,IMovement
     {
+        #region Variables
         private InputManager _inputManager;
-        private Rigidbody rb;
-        [SerializeField] private float _movementSpeed = 10f;
-        [SerializeField] private float _rotationSpeed = 10f;
+        private Rigidbody _rb;
+        private Camera _isometricCamera;
+        private PlayerInput _playerInputs;
+        private Coroutine _coroutine;
+        private int groundLayer;
+        
+        [Header(" ---- Player Movement ---- ")]
+        
+        [SerializeField] private float movementSpeed = 10f;
+        [SerializeField] private float rotationSpeed = 10f;
+        #endregion
+        
+        #region Unity-Calls
         private void Awake()
         {
-            rb = GetComponent<Rigidbody>();
+            _rb = GetComponent<Rigidbody>();
             _inputManager = new InputManager();
+            _playerInputs = GetComponent<PlayerInput>();
+            groundLayer = LayerMask.NameToLayer($"Ground");
+            _isometricCamera=Camera.main;
+          
         }
 
-        // Update is called once per frame
+        private void Start()
+        {
+            _inputManager.InitializeMoveInputActions(_playerInputs);
+        }
+
+        private void OnEnable()
+        {
+            InputManager.OnMouseClicked += ClickToMove;
+        }
+
+        private void OnDisable()
+        {
+            InputManager.OnMouseClicked -= ClickToMove;
+        }
+
         void Update()
         {
-            _inputManager.GetInput();
-            _inputManager.Look(transform,_rotationSpeed);
+            Look( _inputManager.GetInput());
         }
 
         private void FixedUpdate()
         {
-            Move(_inputManager.CurrentInput);
+            Move( _inputManager.GetInput());
         }
+        #endregion
 
+        #region Private-Functions
+
+        private IEnumerator PlayerMoveTowards(Vector3 target)
+        {
+            var playerDistanceToFloor = transform.position.y - target.y;
+            target.y += playerDistanceToFloor;
+            
+            while (Vector3.Distance(transform.position, target) > 0.1f)
+            {
+                Vector3 direction = target - transform.position;
+                
+                _rb.velocity = direction.normalized * movementSpeed;
+                
+                transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction.normalized),rotationSpeed * Time.deltaTime);
+                
+                yield return null;
+            }
+        }
+        #endregion
+        
+        #region Public-Functions
+
+        #region Free-Movement
         public void Move(Vector3 input)
         {
-            rb.MovePosition(transform.position + (transform.forward * input.magnitude) * _movementSpeed * Time.deltaTime);
+            _rb.MovePosition(transform.position + transform.forward * (input.magnitude * movementSpeed * Time.deltaTime));
         }
+        public void Look(Vector3 input)
+        {
+            if (input == Vector3.zero) return;
+            
+            var position = transform.position;
+            var relative = (position + input.ToIso()) - position;
+            var rotation = Quaternion.LookRotation(relative, Vector3.up);
+
+            transform.rotation =
+                Quaternion.RotateTowards(transform.rotation, rotation, rotationSpeed * Time.deltaTime);
+        }
+        #endregion
+
+        #region Click-To-Move
+        
+        public void ClickToMove(Vector3 mouseInput)
+        {
+            var ray=_isometricCamera.ScreenPointToRay(mouseInput);
+            if (!Physics.Raycast(ray: ray, hitInfo: out var raycastHit) && !raycastHit.collider && raycastHit.collider.gameObject.layer.CompareTo(groundLayer)==0) 
+                return;
+            
+            if(_coroutine!=null) StopCoroutine(_coroutine);
+            _coroutine = StartCoroutine(PlayerMoveTowards(raycastHit.point));
+        }
+        #endregion
+        
+        #endregion
     }
 }
