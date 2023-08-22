@@ -12,6 +12,10 @@ namespace Managers
     #region Variables
     private Vector2 _freeMoveVector;
     private Vector3 _mouseClickVector;
+
+    #region Input-Actions
+    private Controls playerControls;
+    #endregion
     private IEnumerable<PlayerInput.ActionEvent> _playerMoveInputActions;
     #endregion
     public delegate void OnMouseClick(Vector3 input);
@@ -21,38 +25,35 @@ namespace Managers
       return new Vector3(_freeMoveVector.x, 0, _freeMoveVector.y);
     }
 
-    public void InitializeMoveInputActions(PlayerInput playerInputs)
+    public void InitializeMoveInputActions()
     {
-      _playerMoveInputActions = playerInputs.actionEvents.Where(u =>
-            u.actionName.Contains(Constants.PlayerMoveAction) ||
-            u.actionName.Contains(Constants.PlayerClickMoveAction));
+      playerControls = new Controls();
+      playerControls.Enable();
       
-      var playerMoveInputActions = _playerMoveInputActions.ToList();
-      for (int i = 0; i < playerMoveInputActions.Count; i++)
-      {
-        BindMoveInputCallbacks(playerMoveInputActions[i],i);
-      }
-    }
-    private void BindMoveInputCallbacks(PlayerInput.ActionEvent actionEvent,int index)
-    {
-      switch (index)
-      {
-        case 0:
-          actionEvent.AddListener(MoveInput);
-          break;
-        case 1:
-          actionEvent.AddListener(MouseClickInput);
-          break;
-      }
+      playerControls.Player.Move.performed += MoveInput;
+      playerControls.Player.Move.canceled += CancelMoveInput;
+      playerControls.Player.ClickToMove.performed += MouseClickInput;
     }
 
+    public void DeleteMoveInputActions()
+    {
+      playerControls.Player.Move.performed -= MoveInput;
+      playerControls.Player.Move.canceled -= CancelMoveInput;
+      playerControls.Player.ClickToMove.performed -= MouseClickInput;
+      playerControls.Disable();
+    }
     #region Input-Actions-Callback
-    public void MoveInput(InputAction.CallbackContext input)
+
+    private void MoveInput(InputAction.CallbackContext input)
     {
       _freeMoveVector= input.ReadValue<Vector2>();
     }
+    private void CancelMoveInput(InputAction.CallbackContext input)
+    {
+      _freeMoveVector= Vector2.zero;
+    }
 
-    public void MouseClickInput(InputAction.CallbackContext mouseInput)
+    private void MouseClickInput(InputAction.CallbackContext mouseInput)
     {
       _mouseClickVector = Mouse.current.position.ReadValue();
       OnMouseClicked?.Invoke(_mouseClickVector);

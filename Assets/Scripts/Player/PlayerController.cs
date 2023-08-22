@@ -36,19 +36,16 @@ namespace Player
             _isometricCamera=Camera.main;
           
         }
-
-        private void Start()
-        {
-            _inputManager.InitializeMoveInputActions(_playerInputs);
-        }
-
+        
         private void OnEnable()
         {
+            _inputManager.InitializeMoveInputActions();
             InputManager.OnMouseClicked += ClickToMove;
         }
 
         private void OnDisable()
         {
+            _inputManager.DeleteMoveInputActions();
             InputManager.OnMouseClicked -= ClickToMove;
         }
 
