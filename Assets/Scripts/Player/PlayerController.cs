@@ -25,10 +25,12 @@ namespace Player
         [SerializeField] private float movementSpeed = 10f;
         [SerializeField] private float rotationSpeed = 10f;
         #endregion
-        
+
+        public InputManager InputManager => _inputManager;
         #region Unity-Calls
         private void Awake()
         {
+            GameManager.Instance.PlayerController = this;
             _rb = GetComponent<Rigidbody>();
             _inputManager = new InputManager();
             _playerInputs = GetComponent<PlayerInput>();

@@ -111,6 +111,7 @@ namespace Player
                _virtualMouse.CopyState<MouseState>(out var mouseState);
                mouseState.WithButton(MouseButton.Left, Gamepad.current.aButton.IsPressed());
                InputState.Change(_virtualMouse,mouseState);
+               InputState.Change(Mouse.current.position, _virtualMouse.position.ReadValue());
                _previousMouseState = aButtonIsPressed;
            }
 

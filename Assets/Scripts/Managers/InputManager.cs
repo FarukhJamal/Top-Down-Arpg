@@ -20,6 +20,12 @@ namespace Managers
     #endregion
     public delegate void OnMouseClick(Vector3 input);
     public static OnMouseClick OnMouseClicked;
+
+    public Vector3 MouseClickVector
+    {
+      set => _mouseClickVector=value;
+      get => _mouseClickVector;
+    }
     public Vector3 GetInput()
     {
       return new Vector3(_freeMoveVector.x, 0, _freeMoveVector.y);
