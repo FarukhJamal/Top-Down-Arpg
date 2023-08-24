@@ -16,27 +16,27 @@ namespace Player
         private InputManager _inputManager;
         private Rigidbody _rb;
         private Camera _isometricCamera;
-        private PlayerInput _playerInputs;
         private Coroutine _coroutine;
         private int groundLayer;
-        
+
+        public Camera IsometricCamera
+        {
+            set => _isometricCamera = value;
+            get => _isometricCamera;
+        }
         [Header(" ---- Player Movement ---- ")]
         
         [SerializeField] private float movementSpeed = 10f;
         [SerializeField] private float rotationSpeed = 10f;
         #endregion
-
-        public InputManager InputManager => _inputManager;
+        
         #region Unity-Calls
         private void Awake()
         {
-            GameManager.Instance.PlayerController = this;
             _rb = GetComponent<Rigidbody>();
             _inputManager = new InputManager();
-            _playerInputs = GetComponent<PlayerInput>();
             groundLayer = LayerMask.NameToLayer($"Ground");
             _isometricCamera=Camera.main;
-          
         }
         
         private void OnEnable()
