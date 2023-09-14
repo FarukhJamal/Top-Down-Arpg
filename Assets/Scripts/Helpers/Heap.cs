@@ -43,7 +43,10 @@ namespace Helpers
         public void UpdateItem(T item) => SortUp(item);
         public bool Contains(T item)
         {
-            return Equals(items[item.HeapIndex], item);
+           // return Equals(items[item.HeapIndex], item);
+           if (item.HeapIndex < currentItemCount)
+               return Equals(items[item.HeapIndex], item);
+           return false;
         }
         
         private void SortDown(T item)
