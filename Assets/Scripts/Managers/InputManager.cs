@@ -28,7 +28,7 @@ namespace Managers
     }
     public Vector3 GetInput()
     {
-      return new Vector3(_freeMoveVector.x, 0, _freeMoveVector.y);
+      return new Vector3(_freeMoveVector.x, 0f, _freeMoveVector.y);
     }
 
     public void InitializeMoveInputActions()
