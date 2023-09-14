@@ -2031,8 +2031,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 462d360db297d8742a8ffa9f8cab2a91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  onlyDisplayPathGizmo: 1
-  unWalkableMask:
+  onlyDisplayPathGizmos: 0
+  unwalkableMask:
     serializedVersion: 2
     m_Bits: 128
   gridWorldSize: {x: 100, y: 100}
