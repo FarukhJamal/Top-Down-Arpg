@@ -17,7 +17,7 @@ namespace Player
         private Rigidbody _rb;
         private Camera _isometricCamera;
         private Coroutine _coroutine;
-        private int groundLayer;
+        private int _groundLayer;
 
         public Camera IsometricCamera
         {
@@ -35,7 +35,7 @@ namespace Player
         {
             _rb = GetComponent<Rigidbody>();
             _inputManager = new InputManager();
-            groundLayer = LayerMask.NameToLayer($"Ground");
+            _groundLayer = LayerMask.NameToLayer($"Ground");
             _isometricCamera=Camera.main;
         }
         
@@ -107,7 +107,7 @@ namespace Player
         public void ClickToMove(Vector3 mouseInput)
         {
             var ray=_isometricCamera.ScreenPointToRay(mouseInput);
-            if (!Physics.Raycast(ray: ray, hitInfo: out var raycastHit) && !raycastHit.collider && raycastHit.collider.gameObject.layer.CompareTo(groundLayer)==0) 
+            if (!Physics.Raycast(ray: ray, hitInfo: out var raycastHit) && !raycastHit.collider && raycastHit.collider.gameObject.layer.CompareTo(_groundLayer)==0) 
                 return;
             
             if(_coroutine!=null) StopCoroutine(_coroutine);
