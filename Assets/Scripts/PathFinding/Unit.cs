@@ -7,7 +7,7 @@ namespace PathFinding
 
 
 		public Transform target;
-		float speed = 20;
+	[SerializeField]	float speed = 20;
 		Vector3[] path;
 		int targetIndex;
 
