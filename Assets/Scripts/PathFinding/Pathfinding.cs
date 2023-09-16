@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Helpers;
 using UnityEngine;
 
@@ -22,12 +23,16 @@ namespace PathFinding
 		}
 	
 		IEnumerator FindPath(Vector3 startPos, Vector3 targetPos) {
-
+		
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+		
 			Vector3[] waypoints = new Vector3[0];
 			bool pathSuccess = false;
 		
 			Node startNode = grid.NodeFromWorldPoint(startPos);
 			Node targetNode = grid.NodeFromWorldPoint(targetPos);
+			startNode.parent = startNode;
 		
 		
 			if (startNode.walkable && targetNode.walkable) {
@@ -40,6 +45,8 @@ namespace PathFinding
 					closedSet.Add(currentNode);
 				
 					if (currentNode == targetNode) {
+						sw.Stop();
+						print ("Path found: " + sw.ElapsedMilliseconds + " ms");
 						pathSuccess = true;
 						break;
 					}
@@ -49,7 +56,7 @@ namespace PathFinding
 							continue;
 						}
 					
-						int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
+						int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour) + neighbour.movementPenalty;
 						if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour)) {
 							neighbour.gCost = newMovementCostToNeighbour;
 							neighbour.hCost = GetDistance(neighbour, targetNode);
@@ -57,6 +64,8 @@ namespace PathFinding
 						
 							if (!openSet.Contains(neighbour))
 								openSet.Add(neighbour);
+							else 
+								openSet.UpdateItem(neighbour);
 						}
 					}
 				}
