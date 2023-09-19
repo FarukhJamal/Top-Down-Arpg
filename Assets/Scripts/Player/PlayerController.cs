@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Helpers;
 using Managers;
+using PathFinding;
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
@@ -28,8 +31,8 @@ namespace Player
         
         [SerializeField] private float movementSpeed = 10f;
         [SerializeField] private float rotationSpeed = 10f;
+        private NavMeshPath _path;
         #endregion
-        
         #region Unity-Calls
         private void Awake()
         {
@@ -64,20 +67,22 @@ namespace Player
 
         #region Private-Functions
 
-        private IEnumerator PlayerMoveTowards(Vector3 target)
+        private IEnumerator PlayerMoveTowards(Vector3[] paths)
         {
-            var playerDistanceToFloor = transform.position.y - target.y;
-            target.y += playerDistanceToFloor;
-            
-            while (Vector3.Distance(transform.position, target) > 0.1f)
+            foreach (Vector3 path in paths)
             {
-                Vector3 direction = target - transform.position;
+                var playerDistanceToFloor = transform.position.y - path.y;
+                var updatedPath = new Vector3(path.x, path.y + playerDistanceToFloor, path.z);
+                while (Vector3.Distance(transform.position, updatedPath) > 0.1f)
+                {
+                    Vector3 direction = updatedPath - transform.position;
                 
-                _rb.velocity = direction.normalized * movementSpeed;
+                    _rb.velocity = direction.normalized * movementSpeed;
                 
-                transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction.normalized),rotationSpeed * Time.deltaTime);
+                    transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction.normalized),rotationSpeed * Time.deltaTime);
                 
-                yield return null;
+                    yield return null;
+                }
             }
         }
         #endregion
@@ -107,14 +112,28 @@ namespace Player
         public void ClickToMove(Vector3 mouseInput)
         {
             var ray=_isometricCamera.ScreenPointToRay(mouseInput);
-            if (!Physics.Raycast(ray: ray, hitInfo: out var raycastHit) && !raycastHit.collider && raycastHit.collider.gameObject.layer.CompareTo(_groundLayer)==0) 
+            if (!Physics.Raycast(ray: ray, hitInfo: out var raycastHit) && raycastHit.collider!=null&& !raycastHit.collider && raycastHit.collider.gameObject.layer.CompareTo(_groundLayer)==0) 
                 return;
             
-            if(_coroutine!=null) StopCoroutine(_coroutine);
-            _coroutine = StartCoroutine(PlayerMoveTowards(raycastHit.point));
+            if (raycastHit.collider != null)
+            {
+                _path = new NavMeshPath();
+                if (NavMesh.CalculatePath(transform.position, raycastHit.point, NavMesh.AllAreas, _path))
+                {
+                    if (_path.status == NavMeshPathStatus.PathComplete)
+                    {
+                        Debug.Log("Valid Path");
+                        Debug.Log(_path.corners.Length);
+                        if (_coroutine != null) StopCoroutine(_coroutine);
+                        _coroutine = StartCoroutine(PlayerMoveTowards(_path.corners));
+                    }
+                }
+            }
+
+
         }
         #endregion
-        
         #endregion
+        
     }
 }
