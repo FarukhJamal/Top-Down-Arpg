@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Helpers;
 
 namespace Dungeon
 {
@@ -17,7 +18,10 @@ namespace Dungeon
         {
             BinarySpacePartitioner bsp = new BinarySpacePartitioner(dungeonWidth, dungeonLength);
             allSpaceNodes = bsp.PrepareNodesCollection(maxIterations, minRoomWidth, minRoomLength);
-            return new List<Node>(allSpaceNodes);
+            List<Node> roomSpaces = StructureHelper.TraverseGraphToExtractLowestLeaf(bsp.RootNode);
+            RoomGenerator roomGenerator = new RoomGenerator(maxIterations, minRoomLength, minRoomWidth);
+            List<RoomNode> roomList = roomGenerator.GenerateRoomsInGivenSpaces(roomSpaces);
+            return new List<Node>(roomList);
         }
     }
 }
