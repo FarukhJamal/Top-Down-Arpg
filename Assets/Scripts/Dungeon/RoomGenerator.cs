@@ -16,16 +16,17 @@ namespace Dungeon
             this.roomWidth = minRoomWidth;
         }
 
-        public List<RoomNode> GenerateRoomsInGivenSpaces(List<Node> roomSpaces)
+        public List<RoomNode> GenerateRoomsInGivenSpaces(List<Node> roomSpaces,float roomBottomCornerModifier,float roomTopCornerModifier,int roomOffset)
         {
             List<RoomNode> listToReturn = new List<RoomNode>();
             foreach (var space in roomSpaces)
             {
                 Vector2Int newBottomLeftPoint =
                     StructureHelper.GenerateBottomLeftCornerBetween(space.BottomLeftAreaCorner,
-                        space.TopRightAreaCorner, 0.1f, 1);
-                Vector2Int newTopRightPoint=StructureHelper.GenerateBottomLeftCornerBetween(space.BottomLeftAreaCorner,
-                    space.TopRightAreaCorner, 0.9f, 1);
+                        space.TopRightAreaCorner, roomBottomCornerModifier, roomOffset);
+                Vector2Int newTopRightPoint=StructureHelper.GenerateTopRightCornerBetween(space.BottomLeftAreaCorner,
+                    space.TopRightAreaCorner, roomTopCornerModifier, roomOffset);
+                
                 space.BottomLeftAreaCorner = newBottomLeftPoint;
                 space.TopRightAreaCorner = newTopRightPoint;
                 space.BottomRightAreaCorner = new Vector2Int(newTopRightPoint.x, newBottomLeftPoint.y);
