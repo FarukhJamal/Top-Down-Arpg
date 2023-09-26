@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Helpers;
 
 namespace Dungeon
@@ -25,7 +26,7 @@ namespace Dungeon
             CorridorGenerator corridorGenerator = new CorridorGenerator();
             var corridorList = corridorGenerator.CreateCorridors(allNodesCollection, corridorWidth);
             
-            return new List<Node>(roomList);
+            return new List<Node>(roomList).Concat(corridorList).ToList();
         }
     }
 }
