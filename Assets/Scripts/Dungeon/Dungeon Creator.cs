@@ -49,7 +49,7 @@ namespace Dungeon
         private void CreateDungeon()
         {
             DungeonGenerator dungeonGenerator = new DungeonGenerator(dungeonWidth,dungeonLength);
-            var listOfRooms = dungeonGenerator.CalculateRooms(maxIterations, minRoomWidth, maxRoomWidth,roomBottomCornerModifier,roomTopCornerModifier,roomOffset,corridorWidth);
+            var listOfRooms = dungeonGenerator.CalculateDungeon(maxIterations, minRoomWidth, maxRoomWidth,roomBottomCornerModifier,roomTopCornerModifier,roomOffset,corridorWidth);
             for (int i = 0; i < listOfRooms.Count; i++)
             {
                 CreateMesh(listOfRooms[i].BottomLeftAreaCorner,listOfRooms[i].TopRightAreaCorner);

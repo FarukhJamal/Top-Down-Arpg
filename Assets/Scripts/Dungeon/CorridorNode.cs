@@ -1,5 +1,8 @@
 ﻿
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Helpers;
 using UnityEngine;
 
@@ -10,6 +13,7 @@ namespace Dungeon
         private Node structure1;
         private Node structure2;
         private int corridorWidth;
+        private int modifierDistanceFromWall = 1;
         public CorridorNode(Node node1, Node node2, int corridorWidth) : base(null)
         {
             this.structure1 = node1;
@@ -38,9 +42,83 @@ namespace Dungeon
             }
         }
 
-        private void ProcessRoomInRelationRightOrLeft(Node p0, Node p1)
+        private void ProcessRoomInRelationRightOrLeft(Node structure1, Node structure2)
         {
-            throw new System.NotImplementedException();
+            Node leftStructure = null;
+            List<Node> leftStructureChildren = StructureHelper.TraverseGraphToExtractLowestLeaf(structure1);
+            Node rightStructure = null;
+            List<Node> rightStructureChildren = StructureHelper.TraverseGraphToExtractLowestLeaf(structure2);
+
+            var sortedLeftStructure =
+                leftStructureChildren.OrderByDescending(child => child.TopRightAreaCorner.x).ToList();
+            if (sortedLeftStructure.Count == 1)
+            {
+                leftStructure = sortedLeftStructure[0];
+            }
+            else
+            {
+                int maxX = sortedLeftStructure[0].TopRightAreaCorner.x;
+                sortedLeftStructure = sortedLeftStructure
+                    .Where(children => Math.Abs(maxX - children.TopRightAreaCorner.x) < 10).ToList();
+                int index = UnityEngine.Random.Range(0, sortedLeftStructure.Count);
+                leftStructure = sortedLeftStructure[index];
+            }
+
+            var possibleNeighbooursInRightStructureList =
+                rightStructureChildren.Where(child => GetValidYForNeighbourLeftRight(leftStructure.TopRightAreaCorner,leftStructure.BottomRightAreaCorner,
+                    child.TopLeftAreaCorner,child.BottomLeftAreaCorner)!=-1).ToList();
+
+            if (possibleNeighbooursInRightStructureList.Count <= 0)
+            {
+                rightStructure = structure2;
+            }
+            else
+            {
+                rightStructure = possibleNeighbooursInRightStructureList[0];
+            }
+
+            int y = GetValidYForNeighbourLeftRight(leftStructure.TopRightAreaCorner,
+                leftStructure.BottomRightAreaCorner,rightStructure.TopLeftAreaCorner,rightStructure.BottomLeftAreaCorner);
+
+            while (y==-1 && sortedLeftStructure.Count>=1)
+            {
+                sortedLeftStructure = sortedLeftStructure
+                    .Where(child => child.TopLeftAreaCorner.y != leftStructure.TopLeftAreaCorner.y).ToList();
+                leftStructure = sortedLeftStructure[0];
+                y=GetValidYForNeighbourLeftRight(leftStructure.TopRightAreaCorner,
+                    leftStructure.BottomRightAreaCorner,rightStructure.TopLeftAreaCorner,rightStructure.BottomLeftAreaCorner);
+            }
+
+            BottomLeftAreaCorner = new Vector2Int(leftStructure.BottomRightAreaCorner.x, y);
+            TopRightAreaCorner = new Vector2Int(rightStructure.TopLeftAreaCorner.x, y + this.corridorWidth);
+        }
+
+        private int GetValidYForNeighbourLeftRight(Vector2Int leftNodeUp, Vector2Int leftNodeDown, Vector2Int rightNodeUp, Vector2Int rightNodeDown)
+        {
+            if (rightNodeUp.y >= leftNodeUp.y && leftNodeDown.y >= rightNodeDown.y)
+            {
+                return StructureHelper.CalculateMiddlePoint(leftNodeDown + new Vector2Int(0, modifierDistanceFromWall),leftNodeUp-new Vector2Int(0,modifierDistanceFromWall+ this.corridorWidth)).y;
+            }
+
+            if (rightNodeUp.y < leftNodeUp.y && leftNodeDown.y <= rightNodeDown.y)
+            {
+                return StructureHelper.CalculateMiddlePoint(rightNodeDown+new Vector2Int(0,modifierDistanceFromWall),rightNodeUp-new Vector2Int(0,modifierDistanceFromWall+this.corridorWidth)).y;
+
+            }
+
+            if (leftNodeUp.y >= rightNodeDown.y && leftNodeUp.y <= rightNodeUp.y)
+            {
+                return StructureHelper.CalculateMiddlePoint(rightNodeDown+new Vector2Int(0,modifierDistanceFromWall),leftNodeUp-new Vector2Int(0,modifierDistanceFromWall)).y;
+
+            }
+
+            if (leftNodeDown.y >= rightNodeDown.y && leftNodeDown.y <= rightNodeUp.y)
+            {
+                return StructureHelper.CalculateMiddlePoint(leftNodeDown + new Vector2Int(0, modifierDistanceFromWall),rightNodeUp-new Vector2Int(0,modifierDistanceFromWall+ this.corridorWidth)).y;
+
+            }
+
+            return -1;
         }
 
         private void ProcessRoomInRelationUpOrDown(Node node, Node structure3)
