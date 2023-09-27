@@ -171,12 +171,16 @@ MonoBehaviour:
   dungeonLength: 100
   minRoomWidth: 25
   maxRoomWidth: 25
-  maxIterations: 10
+  maxIterations: 1
   corridorWidth: 5
   roomBottomCornerModifier: 0.1
   roomTopCornerModifier: 0.9
   roomOffset: 1
   material: {fileID: 2100000, guid: 7c724e495f97ae549965f28df3b71f83, type: 2}
+  wallVertical: {fileID: 6919438647097076966, guid: c92bf936409349a4687bc5985dc1fdbd,
+    type: 3}
+  wallHorizontal: {fileID: 581913047548463645, guid: 2916e7d5f43bfb4499cf803178817d6d,
+    type: 3}
 --- !u!1 &1249745848
 GameObject:
   m_ObjectHideFlags: 0

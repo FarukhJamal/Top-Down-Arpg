@@ -51,8 +51,9 @@ namespace Dungeon
 
         #region Private-Functions
 
-        private void CreateDungeon()
+        public void CreateDungeon()
         {
+            DestroyAllChildren();
             DungeonGenerator dungeonGenerator = new DungeonGenerator(dungeonWidth,dungeonLength);
             var listOfRooms = dungeonGenerator.CalculateDungeon(maxIterations, minRoomWidth, maxRoomWidth,roomBottomCornerModifier,
                 roomTopCornerModifier,roomOffset,corridorWidth); 
@@ -75,9 +76,12 @@ namespace Dungeon
 
         private void CreateWalls(GameObject wallParent)
         {
+            //int i = 0;
             foreach (var wallPosition in possibleWallHorizontalPosition)
             {
+               // Debug.Log(possibleWallHorizontalPosition[i]+" "+i);
                 CreateWall(wallParent,wallPosition,wallHorizontal);
+                //i++;
             }
             foreach (var wallPosition in possibleWallVerticalPosition)
             {
@@ -87,7 +91,8 @@ namespace Dungeon
 
         private void CreateWall(GameObject wallParent, Vector3Int wallPosition, GameObject wallPrefab)
         {
-            Instantiate(wallPrefab, wallPosition, Quaternion.identity, wallParent.transform);
+           var obj= Instantiate(wallPrefab, wallPosition, wallPrefab.transform.rotation, wallParent.transform);
+           obj.name = wallPrefab.name + wallPosition;
         }
 
         private void CreateMesh(Vector2 bottomLeftCorner, Vector2 topRightCorner)
@@ -97,6 +102,10 @@ namespace Dungeon
             Vector3 topLeftV = new Vector3(bottomLeftCorner.x, 0, topRightCorner.y);
             Vector3 topRightV = new Vector3(topRightCorner.x, 0, topRightCorner.y);
 
+            Debug.Log("bottom Left Vertix: " + bottomLeftV);
+            Debug.Log("bottom right Vertix: " + bottomRightV);
+            Debug.Log("top Left Vertix: " + topLeftV);
+            Debug.Log("top right Vertix: " + topRightV);
             Vector3[] vertices = new[]
             {
                 topLeftV,
@@ -126,8 +135,9 @@ namespace Dungeon
             mesh.uv = uvs;
             mesh.triangles = triangles;
 
-            GameObject dungeonFloor = new GameObject("Mesh"+bottomLeftCorner, typeof(MeshFilter), typeof(MeshRenderer));
-        
+            GameObject dungeonFloor = new GameObject("Mesh "+(topLeftV+topRightV)+" Upper "+(bottomLeftV+bottomRightV)+" Lower ", typeof(MeshFilter), typeof(MeshRenderer));
+
+            dungeonFloor.transform.parent = transform;
             dungeonFloor.transform.position=Vector3.zero;
             dungeonFloor.transform.localScale=Vector3.one;
             dungeonFloor.GetComponent<MeshFilter>().mesh = mesh;
@@ -139,7 +149,7 @@ namespace Dungeon
                 var wallPosition = new Vector3(row, 0, bottomLeftV.z);
                 AddWallPositionToList(wallPosition, possibleWallHorizontalPosition, possibleDoorHorizontalPosition);
             }
-            for (int row = (int)topLeftV.x; row < (int)topRightCorner.x; row++)
+            /*for (int row = (int)topLeftV.x; row < (int)topRightCorner.x; row++)
             {
                 var wallPosition = new Vector3(row, 0, topRightV.z);
                 AddWallPositionToList(wallPosition, possibleWallHorizontalPosition, possibleDoorHorizontalPosition);
@@ -153,7 +163,7 @@ namespace Dungeon
             {
                 var wallPosition = new Vector3(bottomRightV.x, 0, col);
                 AddWallPositionToList(wallPosition, possibleWallVerticalPosition, possibleDoorVerticalPosition);
-            }
+            }*/
         }
 
         private void AddWallPositionToList(Vector3 wallPosition, List<Vector3Int> wallList, List<Vector3Int> doorList)
@@ -166,10 +176,21 @@ namespace Dungeon
             }
             else
             {
+               // Debug.Log("Point : "+point);
                 wallList.Add(point);
             }
         }
 
+        private void DestroyAllChildren()
+        {
+            while (transform.childCount != 0)
+            {
+                foreach (Transform item in transform)
+                {
+                    DestroyImmediate(item.gameObject);
+                }
+            }
+        }
         #endregion
     }
 }
