@@ -6088,7 +6088,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c8b4e7036df1334d9d07e4f55e4c360, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerController: {fileID: 9013530291937571923, guid: 0940335bd2e5ede49939d6c7ae66329f,
+  PlayerController: {fileID: 9013530291937571923, guid: 60b96114a064e0d44b27ec0413e589f1,
     type: 3}
   playerCamera: {fileID: 8274574981680708288, guid: f09676cd98c64244b8c80b33602f11b8,
     type: 3}

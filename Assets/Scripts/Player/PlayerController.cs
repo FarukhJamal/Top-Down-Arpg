@@ -18,6 +18,7 @@ namespace Player
         #region Variables
         private InputManager _inputManager;
         private Rigidbody _rb;
+        private Animator _animator;
         private Camera _isometricCamera;
         private Coroutine _coroutine;
         private int _groundLayer;
@@ -38,6 +39,7 @@ namespace Player
         {
             _rb = GetComponent<Rigidbody>();
             _inputManager = new InputManager();
+            _animator = GetComponentInChildren<Animator>();
             _groundLayer = LayerMask.NameToLayer($"Ground");
             _isometricCamera=Camera.main;
         }
@@ -93,6 +95,7 @@ namespace Player
         public void Move(Vector3 input)
         {
             _rb.MovePosition(transform.position + transform.forward * (input.magnitude * movementSpeed * Time.deltaTime));
+            _animator.SetFloat("Speed", _rb.velocity.magnitude);
         }
         public void Look(Vector3 input)
         {
@@ -100,7 +103,10 @@ namespace Player
             
             var position = transform.position;
             var relative = (position + input.ToIso()) - position;
+            relative = new Vector3(relative.x, transform.position.y, relative.z);
             var rotation = Quaternion.LookRotation(relative, Vector3.up);
+
+            rotation = new Quaternion(0, rotation.y, 0, rotation.w);
 
             transform.rotation =
                 Quaternion.RotateTowards(transform.rotation, rotation, rotationSpeed * Time.deltaTime);
